@@ -7,6 +7,7 @@
 // @Boolean(Label="Specific fluorescent frame", value=false) JustFrame
 // @Integer(Label="Fluorescent frame", value=1) FrameNb
 
+print("\\Clear")
 
 file_path=SaveDir+File.separator+"CurrentDataPoint.txt";
 if (File.exists(file_path)){
@@ -183,7 +184,7 @@ while (Condition==true){
 	if(TotalFluPole[0]<TotalFluPole[1]){
 		Pole_order=true;
 	} else Pole_order=false;
-	print("Keep pole order: "+Pole_order);
+	//print("Keep pole order: "+Pole_order);
 	for(i=0; i<2; i++){
 		if (Pole_order==true) {
 			p=i;
@@ -201,7 +202,7 @@ while (Condition==true){
 				r=0;
 			}
 		}
-		print("r is "+r);
+		//print("r is "+r);
 		selectImage(IDiSCAT);
 		roiManager("Show All with labels");
 		roiManager("Select", LastROI-1);
