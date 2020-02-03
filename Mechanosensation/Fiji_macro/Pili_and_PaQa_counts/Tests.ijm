@@ -14,48 +14,57 @@ if(Coordinates.length<10){
 }
 //---------------------------------------------Functions--------------------------------------------------
 
+/* getPolesCoordinates(array_x, array_y, image_size) takes X and Y coordinates and the image size as input
+ * and returns the coordinates of the two poles of a rodshaped bacterium, its center of mass, the width of
+ * the bacterium and the index of the selection where the poles are defined.
+ */
 function getPolesCoordinates(array_x, array_y, image_size){
+	//Getting the min and max value of the X and Y coordinates in order to find the initial center of mass.
 	Array.getStatistics(array_x, minX, maxX, mean, stdDev);
 	Array.getStatistics(array_y, minY, maxY, mean, stdDev);
 	xCM=minX+(maxX-minX)/2;
 	yCM=minY+(maxY-minY)/2;
+
+	//Initializing output Array
 	out=newArray(5);
+
+	//Initializing working variables
 	posLmax=-image_size;
 	negLmax=-image_size;
 	posLmin=image_size;
 	negLmin=image_size;
 	L=newArray(array_x.length);
+	L0=newArray(array_x.length);
+	L1=newArray(array_x.length);
 	indexPole0=0;
 	indexPole1=0;
 	indexCenter0=0;
 	indexCenter1=0;
+
+	//Computing the lengths from CM to points of the selection in order to compute real CM
 	for (i=0; i<array_x.length; i++){
 		x0=array_x[i]-xCM;
 		y0=array_y[i]-yCM;
 		l=sqrt(x0*x0 + y0*y0);
 		L[i]=l;
 	}
-	
-	minima=Array.findMinima(L, 1);
-	
-	x=(array_x[minima[0]]-array_x[minima[1]]);
-	y=(array_y[minima[0]]-array_y[minima[1]]);
-	r=sqrt(x*x+y*y);
-	
+	minima=Array.findMinima(L, 1);	//Returns the indexes of the minima of the lengths in increasing length order
 	xCM=(array_x[minima[0]]+array_x[minima[1]])/2;
 	yCM=(array_y[minima[0]]+array_y[minima[1]])/2;
 
+	//Computing new Lengths from new CM.
 	for (i=0; i<array_x.length; i++){
 		x0=array_x[i]-xCM;
 		y0=array_y[i]-yCM;
 		l=sqrt(x0*x0 + y0*y0);
 		L[i]=l;
 	}
-	
+
+	//Getting index of Length maxima that correspond to the two poles.
 	n_maxima=Array.findMaxima(L, 1);
 	raw_maxima=Array.sort(n_maxima);
-		maxima=newArray(raw_maxima.length-1);
 	maxLengths=newArray(raw_maxima.length);
+	maxima=newArray(raw_maxima.length-1);
 	if(raw_maxima.length>2){	
 		for (i=0; i<raw_maxima.length; i++){
 			maxLengths[i]=L[raw_maxima[i]];
@@ -89,7 +98,37 @@ function getPolesCoordinates(array_x, array_y, image_size){
 	} else{
 		maxima=raw_maxima;
 	}
+
+	x_0=(array_x[maxima[0]]+xCM)/2;
+	y_0=(array_y[maxima[0]]+yCM)/2;
+	x_1=(array_x[maxima[1]]+xCM)/2;
+	y_1=(array_y[maxima[1]]+yCM)/2;
 	
+	for (i=0; i<array_x.length; i++){
+		x0=array_x[i]-x_0;
+		y0=array_y[i]-y_0;
+		l=sqrt(x0*x0 + y0*y0);
+		L0[i]=l;
+	}
+	
+	minima0=Array.findMinima(L0, 1);
+	x=(array_x[minima0[0]]-array_x[minima0[1]]);
+	y=(array_y[minima0[0]]-array_y[minima0[1]]);
+	r0=sqrt(x*x+y*y);
+
+	for (i=0; i<array_x.length; i++){
+		x0=array_x[i]-x_1;
+		y0=array_y[i]-y_1;
+		l=sqrt(x0*x0 + y0*y0);
+		L1[i]=l;
+	}
+	
+	minima1=Array.findMinima(L0, 1);
+	x=(array_x[minima1[0]]-array_x[minima1[1]]);
+	y=(array_y[minima1[0]]-array_y[minima1[1]]);
+	r1=sqrt(x*x+y*y);
+	
+	r=(r0+r1)/2;
 	
 	out[0]=xCM;
 	out[1]=yCM;
