@@ -325,61 +325,74 @@ function writeResult(NameOfTable, Column, Row, Value){
  	return x;
  }
 
+/* getPolesCoordinates(array_x, array_y, image_size) takes X and Y coordinates and the image size as input
+ * and returns the coordinates of the two poles of a rodshaped bacterium, its center of mass, the width of
+ * the bacterium and the index of the selection where the poles are defined.
+ */
 function getPolesCoordinates(array_x, array_y, image_size){
+	//Getting the min and max value of the X and Y coordinates in order to find the initial center of mass.
 	Array.getStatistics(array_x, minX, maxX, mean, stdDev);
 	Array.getStatistics(array_y, minY, maxY, mean, stdDev);
 	xCM=minX+(maxX-minX)/2;
 	yCM=minY+(maxY-minY)/2;
+
+	//Initializing output Array
 	out=newArray(5);
+
+	//Initializing working variables
 	posLmax=-image_size;
 	negLmax=-image_size;
 	posLmin=image_size;
 	negLmin=image_size;
 	L=newArray(array_x.length);
+	L0=newArray(array_x.length);
+	L1=newArray(array_x.length);
 	indexPole0=0;
 	indexPole1=0;
 	indexCenter0=0;
 	indexCenter1=0;
+
+	//Computing the lengths from CM to points of the selection in order to compute real CM
 	for (i=0; i<array_x.length; i++){
 		x0=array_x[i]-xCM;
 		y0=array_y[i]-yCM;
 		l=sqrt(x0*x0 + y0*y0);
 		L[i]=l;
 	}
-	
-	minima=Array.findMinima(L, 1);
-	
-	x=(array_x[minima[0]]-array_x[minima[1]]);
-	y=(array_y[minima[0]]-array_y[minima[1]]);
-	r=sqrt(x*x+y*y);
-	
+	minima=Array.findMinima(L, 1);	//Returns the indexes of the minima of the lengths in increasing length order
 	xCM=(array_x[minima[0]]+array_x[minima[1]])/2;
 	yCM=(array_y[minima[0]]+array_y[minima[1]])/2;
 
+	//Computing new Lengths from new CM.
 	for (i=0; i<array_x.length; i++){
 		x0=array_x[i]-xCM;
 		y0=array_y[i]-yCM;
 		l=sqrt(x0*x0 + y0*y0);
 		L[i]=l;
 	}
-	
+
+	//Getting index of Length maxima. These correspond to the two poles.
+	//Initialization of variables
 	n_maxima=Array.findMaxima(L, 1);
-	raw_maxima=Array.sort(n_maxima);
-		maxima=newArray(raw_maxima.length-1);
+	raw_maxima=Array.sort(n_maxima); //From smallest to largest Index value
 	maxLengths=newArray(raw_maxima.length);
+	maxima=newArray(raw_maxima.length-1);
+
+	//If There are more than 2 maxima, Get the corresponding lengths 
 	if(raw_maxima.length>2){	
 		for (i=0; i<raw_maxima.length; i++){
 			maxLengths[i]=L[raw_maxima[i]];
 		}
-		
+		//Get the index of the smallest length within the maxima
 		Array.getStatistics(maxLengths, smallestL, m, me, std);
 		ind_smallest_L=NaN;
 		for (i=0; i<raw_maxima.length; i++){
 			if(maxLengths[i]==smallestL){
 				ind_smallest_L=i;
-				
 			}
 		}
+		//Checking the location of the smallest maxima (if more than 2 are found) in order to discard it
+		//and take the bigger of the remaining ones
 		if(ind_smallest_L==1){
 			if(maxLengths[ind_smallest_L-1]<maxLengths[ind_smallest_L+1]){
 				ind_smallest_L=ind_smallest_L+1;
@@ -400,7 +413,40 @@ function getPolesCoordinates(array_x, array_y, image_size){
 	} else{
 		maxima=raw_maxima;
 	}
-	
+
+	//Generating coordinates of two spots in between the poles and the CM to extract the mean width of the bacterium
+	x_0=(array_x[maxima[0]]+xCM)/2;
+	y_0=(array_y[maxima[0]]+yCM)/2;
+	x_1=(array_x[maxima[1]]+xCM)/2;
+	y_1=(array_y[maxima[1]]+yCM)/2;
+
+	//First pole
+	for (i=0; i<array_x.length; i++){
+		x0=array_x[i]-x_0;
+		y0=array_y[i]-y_0;
+		l=sqrt(x0*x0 + y0*y0);
+		L0[i]=l;
+	}
+	minima0=Array.findMinima(L0, 1);
+	x=(array_x[minima0[0]]-array_x[minima0[1]]);
+	y=(array_y[minima0[0]]-array_y[minima0[1]]);
+	r0=sqrt(x*x+y*y);
+
+	//Second pole
+	for (i=0; i<array_x.length; i++){
+		x0=array_x[i]-x_1;
+		y0=array_y[i]-y_1;
+		l=sqrt(x0*x0 + y0*y0);
+		L1[i]=l;
+	}
+	minima1=Array.findMinima(L1, 1);
+	x=(array_x[minima1[0]]-array_x[minima1[1]]);
+	y=(array_y[minima1[0]]-array_y[minima1[1]]);
+	r1=sqrt(x*x+y*y);
+
+	//Mean width
+	r=(r0+r1)/2;
+	//print("("+r0+"+"+r1+")/2="+r);
 	
 	out[0]=xCM;
 	out[1]=yCM;
@@ -408,11 +454,15 @@ function getPolesCoordinates(array_x, array_y, image_size){
 	out[3]=maxima[1];
 	out[4]=r;
 
+	//Adding coordinates of poles
 	out2=correctPolesCoordinates(out, array_x, array_y);
 	final_out=Array.concat(out,out2);
 	return final_out;
 }
 
+/* correctPolesCoordinates(Coordinates, array_x, array_y) takes an Array containing CM coordinates,
+ * Index of the two poles and mean cell width and returns the corrected coordinates of the poles
+ */
 function correctPolesCoordinates(Coordinates, array_x, array_y){
 	out=newArray(4);
 	x0=array_x[Coordinates[2]];
@@ -422,6 +472,7 @@ function correctPolesCoordinates(Coordinates, array_x, array_y){
 	xCM=Coordinates[0];
 	yCM=Coordinates[1];
 	r=Coordinates[4]/2;
+	
 	norm0=sqrt((xCM-x0)*(xCM-x0)+(yCM-y0)*(yCM-y0));
 	norm1=sqrt((xCM-x1)*(xCM-x1)+(yCM-y1)*(yCM-y1));
 	
