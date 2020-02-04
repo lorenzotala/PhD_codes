@@ -6,6 +6,7 @@
 // @Integer(Label="Cell min area", value=450) MinCellArea
 // @Boolean(Label="Specific fluorescent frame", value=false) JustFrame
 // @Integer(Label="Fluorescent frame", value=1) FrameNb
+// @String(label="", description="Chose between: Li dark, IsoData dark, Otsu dark", value="Otsu dark") threshold
 
 print("\\Clear")
 
@@ -129,7 +130,7 @@ while (Condition==true){
 	/*setAutoThreshold("Default dark");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");*/
-	setAutoThreshold("Otsu dark"); //Li dark
+	setAutoThreshold(threshold); //Li dark
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	//run("Skeletonize");
