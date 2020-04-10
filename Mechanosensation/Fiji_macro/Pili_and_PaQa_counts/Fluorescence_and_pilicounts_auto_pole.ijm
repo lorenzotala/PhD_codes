@@ -213,7 +213,10 @@ function cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std,
 	if(!Discard_cell){
 		run("Fill Holes");
 		run("Create Selection");
-		getSelectionCoordinates( xCell, yCell);
+		getSelectionCoordinates( xCell_raw, yCell_raw);
+		PixSel=pixelizeSelection(xCell_raw, yCell_raw, "closed");
+		xCell=Array.slice(PixSel,0,lengthOf(PixSel)/2);
+		yCell=Array.slice(PixSel,lengthOf(PixSel)/2,lengthOf(PixSel));
 		//print(xCell[0]);
 		selectImage(CellID);
 		run("Restore Selection");
@@ -267,9 +270,9 @@ function cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std,
 				p=i;
 				if(i==0){
 				r=0;
-			} else if (i==1){
-				r=2;
-			}
+				} else if (i==1){
+					r=2;
+				}
 			} else {
 				if (i==0){
 					p=1;
@@ -298,17 +301,17 @@ function cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std,
 				AddCell=Dialog.getCheckbox();
 				Global_Stop = Dialog.getCheckbox();
 			}
-		
-			setResult("X_Pole"+Pole[p], n, Poles_Coordinates[5+r]);
-			setResult("Y_Pole"+Pole[p], n, Poles_Coordinates[5+r+1]);
-			setResult("AreaPole"+Pole[p], n, area[p]);
-			setResult("MeanPole"+Pole[p], n, mean[p]);
-			setResult("TotalFluorescencePole"+Pole[p], n, TotalFluPole[p]);
-			setResult("MinPole"+Pole[p], n, min[p]);
-			setResult("MaxPole"+Pole[p], n, max[p]);
-			setResult("StdPole"+Pole[p], n, std[p]);
-			setResult("Nb_Pili_Pole"+Pole[p], n, PiliCount[i]);
-			setResult("Nb_Flagella_Pole"+Pole[p], n, FlagellaCount[i]);
+			print("Pole order is "+Pole[i]+", p="+p+" and r="+r);
+			setResult("X_Pole"+Pole[i], n, Poles_Coordinates[5+r]);
+			setResult("Y_Pole"+Pole[i], n, Poles_Coordinates[5+r+1]);
+			setResult("AreaPole"+Pole[i], n, area[p]);
+			setResult("MeanPole"+Pole[i], n, mean[p]);
+			setResult("TotalFluorescencePole"+Pole[i], n, TotalFluPole[p]);
+			setResult("MinPole"+Pole[i], n, min[p]);
+			setResult("MaxPole"+Pole[i], n, max[p]);
+			setResult("StdPole"+Pole[i], n, std[p]);
+			setResult("Nb_Pili_Pole"+Pole[i], n, PiliCount[i]);
+			setResult("Nb_Flagella_Pole"+Pole[i], n, FlagellaCount[i]);
 		}
 		cellFlu=TotalFlu-(TotalFluPole[0]+TotalFluPole[1]);
 		ratio1=(TotalFluPole[0]+TotalFluPole[1])/cellFlu;
@@ -680,8 +683,60 @@ function openWorkingImg(SaveDir, EventNB, Source){
 			}
 			n=n+1;
 		} else {
-			waitForUser( "Pause","Couldn't find "+Source+" image of event"+Coordinates[8]+".\\n PLease open the image manually");
+			waitForUser( "Pause","Couldn't find "+Source+" image of event"+EventNB+".\\n PLease open the image manually");
 			Found_img = true;
 		}	
 	}
+}
+
+/*  pixelizeSelection(x_array, y_array) generate a new array "out" containing all the pixel values of
+ *  a selection. The array Out contains X values first and y values last. You need to split the array
+ *  in two to extract values.
+ */
+function pixelizeSelection(xCell, yCell, boundary){
+	if(boundary=="closed"){
+		x_array=Array.concat(xCell, xCell[0]);
+		y_array=Array.concat(yCell, yCell[0]);
+	} else {
+		x_array=xCell;
+		y_array=yCell;
+	}
+	limit=lengthOf(x_array);
+	X=newArray();
+	Y=newArray();
+	for(i=0; i<limit-1; i++){
+		X=Array.concat(X, x_array[i]);
+		Y=Array.concat(Y, y_array[i]);
+		dx=x_array[i+1]-x_array[i];
+		dy=y_array[i+1]-y_array[i];
+		if(dx*dy == 0){
+			if(dx == 0){
+				if(dy>=0){
+					sign=1;
+				}else if (dy<0){
+					sign=-1;
+				}
+				for(y=1; y<abs(dy); y++){
+					Y=Array.concat(Y, y_array[i]+y*sign);
+					X=Array.concat(X, x_array[i]);
+				}
+			} else if(dy == 0){
+				if(dx>=0){
+					sign=1;
+				}else if (dx<0){
+					sign=-1;
+				}
+				for(x=1; x<abs(dx); x++){
+					X=Array.concat(X, x_array[i]+x*sign);
+					Y=Array.concat(Y, y_array[i]);
+				}
+			}
+		}
+	}
+	X=Array.concat(X, x_array[lengthOf(x_array)-1]);
+	Y=Array.concat(Y, y_array[lengthOf(y_array)-1]);
+	out=newArray();
+	out=Array.concat(out, X);
+	out=Array.concat(out, Y);
+	return out;
 }
