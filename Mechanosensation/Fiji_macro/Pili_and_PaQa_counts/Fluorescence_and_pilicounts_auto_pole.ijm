@@ -9,6 +9,7 @@
 // @String(label="", description="Chose between: Li dark, IsoData dark, Otsu dark", value="Otsu dark") threshold
 
 // ------------------------------------------------Main -------------------------------------------------------
+setTool("line");
 
 // Set global variables
 RootMinCellArea = MinCellArea; // value of minimum cell area to take into account for Analize particles
@@ -42,7 +43,10 @@ while (Global_Stop == false){
 	//Opening images
 	openWorkingImg(SaveDir, EventNB, "iSCAT");
 	openWorkingImg(SaveDir, EventNB, "TIRF");
-
+	if(nImages>0){
+		run("Tile");
+	}
+	
 	//Checking Image quality and properties
 	waitForUser( "Pause","Inspect fluorescent image");
 	Dialog.create("Fluorescence parameters");
