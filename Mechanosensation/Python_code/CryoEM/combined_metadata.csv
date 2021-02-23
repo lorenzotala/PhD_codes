@@ -1,4 +1,4 @@
-,Unnamed: 0,_rlnReferenceImage,_rlnClassDistribution,_rlnAccuracyRotations,_rlnAccuracyTranslationsAngst,_rlnEstimatedResolution,_rlnOverallFourierCompleteness,_rlnClassPriorOffsetX,_rlnClassPriorOffsetY,_rlnHelicalRise,_rlnHelicalTwist,Strain,Class_nb
+﻿Unnamed: 0,index,_rlnReferenceImage,_rlnClassDistribution,_rlnAccuracyRotations,_rlnAccuracyTranslationsAngst,_rlnEstimatedResolution,_rlnOverallFourierCompleteness,_rlnClassPriorOffsetX,_rlnClassPriorOffsetY,_rlnHelicalRise,_rlnHelicalTwist,Strain,Class_nb
 0,0,000001@Class2D/job016/run_it025_classes.mrcs,0.063675,999.0,999.0,5.773617,0.952124,-0.02029,-0.02308,6.785,0.0,WT,1
 1,1,000002@Class2D/job016/run_it025_classes.mrcs,0.0,999.0,999.0,54.272,0.66571,0.0,0.0,6.785,0.0,WT,2
 2,2,000003@Class2D/job016/run_it025_classes.mrcs,0.047198000000000004,0.05,0.1166,4.678621,0.9958739999999999,-0.02285,0.054086,6.785,0.0,WT,3
