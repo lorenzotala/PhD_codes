@@ -70,7 +70,7 @@ if (dirList.length==0) {
 			run("Bin...", "x=2 y=2 z=1 bin=Average");
 			saveAs("Tiff", splitDir+File.separator+"PhaseContrast"+File.separator+imgName+".tif");
 		
-			selectWindow(list[i]+" - C=1");
+			selectWindow(list[i]+" - C=2");
 			imgName=getTitle();
 			idRFP=getImageID();
 			run("Duplicate...", "use");
@@ -81,7 +81,7 @@ if (dirList.length==0) {
 			AVGFramesRFP=Array.concat(AVGFrames,temp);
 			saveAs("Tiff", splitDir+File.separator+"RFP"+File.separator+imgName+".tif");
 		
-			selectWindow(list[i]+" - C=2");
+			selectWindow(list[i]+" - C=1");
 			imgName=getTitle();
 			idFITC=getImageID();
 			run("Duplicate...", "use");

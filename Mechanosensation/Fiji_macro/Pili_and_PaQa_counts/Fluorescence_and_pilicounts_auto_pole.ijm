@@ -6,7 +6,8 @@
 // @Integer(Label="Cell min area", value=450) MinCellArea
 // @Boolean(Label="First event?", value=false) isFirst
 // @Integer(Label="Event nubmer", value=1) EventNB
-// @String(label="", description="Chose between: Li dark, IsoData dark, Otsu dark", value="Otsu dark") threshold
+// @String(label="", description="Chose between: Li dark, IsoData dark, Otsu dark or Triangle dark (Brightfield)", value="Otsu dark") threshold
+// @Boolean(Label="Brightfield image?", value=false) Brightfield
 
 // ------------------------------------------------Main -------------------------------------------------------
 setTool("line");
@@ -88,7 +89,7 @@ while (Global_Stop == false){
 		Title=getTitle();
 
 		//iSCAT and tirf imgaes registration
-		IDReg=registration(IDiSCAT, IDtirf, NewReg, JustFrame, FrameNb, Coordinates, dir, scaling);
+		IDReg=registration(IDiSCAT, IDtirf, NewReg, JustFrame, FrameNb, Coordinates, dir, scaling, Brightfield);
 		run("Tile");
 		selectImage(IDReg);
 		run("In [+]");
@@ -113,7 +114,7 @@ while (Global_Stop == false){
 		while (AddCell==true){
 			Discard_cell=false;
 			n=nResults;
-			Booleans=cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std, TotalFluPole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Global_Stop, threshold, MinCellArea, RootMinCellArea, n);
+			Booleans=cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std, TotalFluPole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Global_Stop, threshold, MinCellArea, RootMinCellArea, n, Brightfield);
 			AddCell=Booleans[0];
 			Global_Stop=Booleans[1];
 		}
@@ -159,7 +160,7 @@ while (Global_Stop == false){
  *  automatically detect cell poles and record number of pili in each pole.
  * 
  */
-function cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std, TotalFluPole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Global_Stop, threshold, MinCellArea, RootMinCellArea, n){
+function cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std, TotalFluPole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Global_Stop, threshold, MinCellArea, RootMinCellArea, n, Brightfield){
 	//Ask user to select cell of interest
 	roiManager("Show All with labels");
 	waitForUser( "Pause","Draw line along the cell starting from the dim to the bright pole");
@@ -174,10 +175,23 @@ function cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std,
 	run("Duplicate...", "title=Mask"+n+" duplicate");
 	MaskID=getImageID;
 	selectImage(MaskID);
-	setAutoThreshold(threshold); //Li dark
-	setOption("BlackBackground", false);
-	run("Convert to Mask");
-	run("Median...", "radius=2");
+	if(Brightfield){
+		run("Find Edges");
+		setOption("BlackBackground", false);
+		setAutoThreshold("Triangle dark");
+		run("Convert to Mask");
+		run("Dilate");
+		run("Dilate");
+		run("Fill Holes", "stack");
+		run("Erode");
+		run("Erode");
+		run("Median...", "radius=2 stack");
+	} else {
+		setAutoThreshold(threshold); //Li dark
+		setOption("BlackBackground", false);
+		run("Convert to Mask");
+		run("Median...", "radius=2");
+	}
 	
 	Cell_detected = false;
 	while (Cell_detected == false){
@@ -336,7 +350,7 @@ function cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std,
  *  to save the registered result image and returns its ID.
  * 
  */
-function registration(IDiSCAT, IDtirf, NewReg, JustFrame, FrameNb, Coordinates, dir, scaling){
+function registration(IDiSCAT, IDtirf, NewReg, JustFrame, FrameNb, Coordinates, dir, scaling, Brightfield){
 	selectImage(IDiSCAT);
 	run("Gaussian Blur...", "sigma=2 stack");
 	makeLine(Coordinates[0], Coordinates[1], Coordinates[2], Coordinates[3]);
@@ -365,7 +379,7 @@ function registration(IDiSCAT, IDtirf, NewReg, JustFrame, FrameNb, Coordinates, 
 	} else run("Duplicate...", "title=CopyTirf duplicate");
 	IDCopy=getImageID;
 	run("Median...", "radius=2 stack");
-	run("Subtract Background...", "rolling=50 sliding stack");
+	if(!Brightfield) run("Subtract Background...", "rolling=50 sliding stack");
 	if(!JustFrame){
 		run("Z Project...", "projection=[Average Intensity]");
 	} else run("Duplicate...", "title=CopyTirf use");
