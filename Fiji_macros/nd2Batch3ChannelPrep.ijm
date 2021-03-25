@@ -39,7 +39,7 @@ while (stopDir) { // Count how many subfolders there are in the user defined di
 }
 
 //Setting up the progress bar
-progressBar_length = 70;
+progressBar_length = 50;
 empty_character = "  ";
 
 
