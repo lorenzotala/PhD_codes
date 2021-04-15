@@ -26,6 +26,7 @@ if (isFirst){
 	Coordinates=newArray(271,284,245,249,205,213,187,190, EventNB);
 }
 
+print("Mcro start");
 //Main loop
 while (Global_Stop == false){
 	//Initializing results, ROI manager and log windows
@@ -45,6 +46,7 @@ while (Global_Stop == false){
 	//Opening images
 	openWorkingImg(SaveDir, EventNB, "iSCAT");
 	openWorkingImg(SaveDir, EventNB, "TIRF");
+	run("Enhance Contrast", "saturated=0.35");
 	if(nImages>0){
 		run("Tile");
 	}
@@ -296,7 +298,7 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 			makeOval(x_i, y_i, pole_rad, pole_rad);
 			getStatistics(ar, me, mi, ma, st, histo);
 			TotFlu_i=ar*me;
-			print("Pole i="+i+" at "+x_i+";"+y_i+" has an initial total flu of "+TotFlu_i);
+			print("\nPole i="+i+" at "+x_i+";"+y_i+" has an initial total flu of "+TotFlu_i);
 			Open=false;
 			if(isOpen("Results")){
 				print("Results are already open");
@@ -402,6 +404,7 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 				Global_Stop = Dialog.getCheckbox();
 			}
 			print("Pole order is "+Pole[i]+", p="+p+" and r="+r);
+			print(isOpen("Results")+" nb res:"+nResults);
 			setResult("X_Pole"+Pole[i], n, Poles_Coordinates[5+r]);
 			setResult("Y_Pole"+Pole[i], n, Poles_Coordinates[5+r+1]);
 			setResult("AreaPole"+Pole[i], n, area[p]);
@@ -417,7 +420,7 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 		ratio1=(TotalFluPole[0]+TotalFluPole[1])/cellFlu;
 		ratio2=(area[0]+area[1])/(Cellarea-(area[0]+area[1]));
 		PolarRatio=ratio1/ratio2;
-		print(ratio1+"% / "+ratio2+"% = "+PolarRatio+"\n");
+		print(ratio1+"% / "+ratio2+"% = "+PolarRatio);
 		setResult("PolarRatio", n, PolarRatio);	
 		if (RetractCount) {
 
