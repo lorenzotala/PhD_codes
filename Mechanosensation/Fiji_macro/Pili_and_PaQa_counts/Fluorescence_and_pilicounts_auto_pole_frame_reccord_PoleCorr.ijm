@@ -417,7 +417,7 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 		ratio1=(TotalFluPole[0]+TotalFluPole[1])/cellFlu;
 		ratio2=(area[0]+area[1])/(Cellarea-(area[0]+area[1]));
 		PolarRatio=ratio1/ratio2;
-		print(ratio1+"% / "+ratio2+"% = "+PolarRatio);
+		print(ratio1+"% / "+ratio2+"% = "+PolarRatio+"\n");
 		setResult("PolarRatio", n, PolarRatio);	
 		if (RetractCount) {
 
