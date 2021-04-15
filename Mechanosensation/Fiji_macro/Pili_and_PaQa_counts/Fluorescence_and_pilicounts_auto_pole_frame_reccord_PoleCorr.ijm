@@ -289,14 +289,17 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 				r=2;
 			}
 			selectImage(IDReg);
-			makeOval(Poles_Coordinates[5+r]-round(pole_rad/2),Poles_Coordinates[5+r+1]-round(pole_rad/2),pole_rad,pole_rad);
+			// makeOval(Poles_Coordinates[5+r]-round(pole_rad/2),Poles_Coordinates[5+r+1]-round(pole_rad/2),pole_rad,pole_rad);
 //			//
-			waitForUser( "Pause","Check first pole");
 			x_i=Poles_Coordinates[5+r]-round(pole_rad/2);
 			y_i=Poles_Coordinates[5+r+1]-round(pole_rad/2);
 			makeOval(x_i, y_i, pole_rad, pole_rad);
+			getStatistics(ar, me, mi, ma, st, histo);
+			TotFlu_i=ar*me;
+			print("Pole i="+i+" at "+x_i+";"+y_i+" has an initial total flu of "+TotFlu_i);
 			Open=false;
 			if(isOpen("Results")){
+				print("Results are already open");
 				Open=true;
 				IJ.renameResults("Results","Root_Results");
 			}
@@ -318,24 +321,42 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 			} else {
 				if (nResults==0) {
 					getSelectionBounds(x_cor, y_cor, trashX, trashY);
+					selectWindow("Results"); 
+					run("Close");
 				}else {
 					x_cor=getResult("X", 0);
 					y_cor=getResult("Y", 0);
+					selectWindow("Results"); 
+					run("Close");
+				}
+				if (Open){
+					IJ.renameResults("Root_Results","Results");
 				}
 			}
 			if (x_cor==x_i && y_cor==y_i) {
 				x_o=x_i;
 				y_o=y_i;
 			} else {
-				x_o=x_cor-round(pole_rad/2);
-				y_o=y_cor-round(pole_rad/2);
+				x_o=x_cor-round(pole_rad/2)+1;
+				y_o=y_cor-round(pole_rad/2)+1;
 			}
 			makeOval(x_o, y_o, pole_rad, pole_rad);
-			waitForUser( "Pause","Check corrected pole");
 //			//
 			getStatistics(area[i], mean[i], min[i], max[i], std[i], histogram);
-			TotalFluPole[i]=mean[i]*area[i];
-			print("Pole i="+i+" has "+TotalFluPole[i]);
+			TotFlu_o=mean[i]*area[i];
+			print("Corrected pole i="+i+" at "+x_o+";"+y_o+" has "+TotFlu_o);
+			if (TotFlu_i>=TotFlu_o) {
+				TotFlu_Final=TotFlu_i;
+				area[i]=ar;
+				mean[i]=me;
+				min[i]=mi;
+				max[i]=ma;
+				std[i]=st;
+			} else {
+				TotFlu_Final=TotFlu_o;
+			}
+			TotalFluPole[i]=TotFlu_Final;
+			print("Conclusion: Pole i="+i+" at "+x_o+";"+y_o+" has "+TotalFluPole[i]);
 		}
 		if(TotalFluPole[0]<TotalFluPole[1]){
 			Pole_order=true;
@@ -879,7 +900,7 @@ function openWorkingImg(SaveDir, EventNB, Source){
 			}
 			n=n+1;
 		} else {
-			waitForUser( "Pause","Couldn't find "+Source+" image of event"+EventNB+".\\n PLease open the image manually");
+			waitForUser( "Pause","Couldn't find "+Source+" image of event"+EventNB+".\nPease open the image manually");
 			Found_img = true;
 		}	
 	}
