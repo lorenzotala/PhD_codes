@@ -179,6 +179,9 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 	max = newArray(2);
 	std = newArray(2);
 	TotalFluPole = newArray(2);
+	if(!isOpen("Results")){
+		Table.create("Results");
+	}
 	
 	//Ask user to select cell of interest
 	roiManager("Show All with labels");
@@ -301,11 +304,10 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 			print("\nPole i="+i+" at "+x_i+";"+y_i+" has an initial total flu of "+TotFlu_i);
 			Open=false;
 			if(isOpen("Results")){
-				print("Results are already open");
 				Open=true;
-				IJ.renameResults("Results","Root_Results");
+				IJ.renameResults("Results","Main_Results");
 			}
-			run("Find Maxima...", "prominence=10 output=[List]");
+			run("Find Maxima...", "prominence=10 output=[List]"); //Should create a new Table
 			if (nResults>1) {
 				x_ar=newArray(nResults);
 				y_ar=newArray(nResults);
@@ -315,26 +317,25 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 				}
 				Array.getStatistics(x_ar, min, max, x_cor, stdDev);
 				Array.getStatistics(y_ar, min, max, y_cor, stdDev);
-				selectWindow("Results"); 
-				run("Close");
-				if (Open){
-					IJ.renameResults("Root_Results","Results");
-				}
 			} else {
 				if (nResults==0) {
 					getSelectionBounds(x_cor, y_cor, trashX, trashY);
-					selectWindow("Results"); 
-					run("Close");
 				}else {
 					x_cor=getResult("X", 0);
 					y_cor=getResult("Y", 0);
-					selectWindow("Results"); 
-					run("Close");
-				}
-				if (Open){
-					IJ.renameResults("Root_Results","Results");
 				}
 			}
+			print("Main results table stored properly: " + isOpen("Main_Results"));
+			print("Temp results table open: " + isOpen("Results")+"\n");
+			selectWindow("Results"); 
+			run("Close");
+			print("Main results table stored properly: " + isOpen("Main_Results"));
+			print("Temp results table open: " + isOpen("Results")+"\n");
+			if (Open){
+				IJ.renameResults("Main_Results","Results");
+			}
+			print("Main results table stored properly: " + isOpen("Main_Results"));
+			print("Results table open: " + isOpen("Results")+"\n");
 			if (x_cor==x_i && y_cor==y_i) {
 				x_o=x_i;
 				y_o=y_i;
