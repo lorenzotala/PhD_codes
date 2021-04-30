@@ -21,10 +21,13 @@ file_path=SaveDir+File.separator+"CurrentDataPoints.txt";
 //Initialization of parameters:
 run("Set Measurements...", "area mean min centroid redirect=None decimal=5");
 
+
 //Check if first time lounching the software or if you want to start at a precise event number
 if (isFirst){
 	Coordinates=newArray(271,284,245,249,205,213,187,190, EventNB);
+	print("\\Clear");
 }
+
 
 //Main loop
 while (Global_Stop == false){
@@ -34,8 +37,7 @@ while (Global_Stop == false){
 			run("Close");
 	 	}
 	roiManager("Reset");
-	//print("\\Clear");
-
+	print("Macro start for event"+EventNB);
 	//Initialization of parameters
 	if (!isFirst){
 		Coordinates = getCurrentDataPoints(file_path);
@@ -45,7 +47,8 @@ while (Global_Stop == false){
 	//Opening images
 	openWorkingImg(SaveDir, EventNB, "iSCAT");
 	openWorkingImg(SaveDir, EventNB, "TIRF");
-	if(nImages>0){
+	if (nImages>0){
+		run("Enhance Contrast", "saturated=0.35");
 		run("Tile");
 	}
 	
@@ -159,6 +162,8 @@ while (Global_Stop == false){
 		run("Close All");
 	}
 }
+selectWindow("Log");
+saveAs("Text", SaveDir+File.separator+"Log.txt");
 //----------------------------------------------------Functions--------------------------------------------------
 
 /*  cellAnalysis(Pole, PiliCount, FlagellaCount, area, mean, min, max, std, TotalFluPole, IDiSCAT, IDReg,
@@ -177,6 +182,9 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 	max = newArray(2);
 	std = newArray(2);
 	TotalFluPole = newArray(2);
+	if(!isOpen("Results")){
+		Table.create("Results");
+	}
 	
 	//Ask user to select cell of interest
 	roiManager("Show All with labels");
@@ -296,14 +304,13 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 			makeOval(x_i, y_i, pole_rad, pole_rad);
 			getStatistics(ar, me, mi, ma, st, histo);
 			TotFlu_i=ar*me;
-			print("Pole i="+i+" at "+x_i+";"+y_i+" has an initial total flu of "+TotFlu_i);
+			print("\nPole i="+i+" at "+x_i+";"+y_i+" has an initial total flu of "+TotFlu_i);
 			Open=false;
 			if(isOpen("Results")){
-				print("Results are already open");
 				Open=true;
-				IJ.renameResults("Results","Root_Results");
+				IJ.renameResults("Results","Main_Results");
 			}
-			run("Find Maxima...", "prominence=10 output=[List]");
+			run("Find Maxima...", "prominence=10 output=[List]"); //Should create a new Table
 			if (nResults>1) {
 				x_ar=newArray(nResults);
 				y_ar=newArray(nResults);
@@ -313,26 +320,21 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 				}
 				Array.getStatistics(x_ar, min, max, x_cor, stdDev);
 				Array.getStatistics(y_ar, min, max, y_cor, stdDev);
-				selectWindow("Results"); 
-				run("Close");
-				if (Open){
-					IJ.renameResults("Root_Results","Results");
-				}
 			} else {
 				if (nResults==0) {
 					getSelectionBounds(x_cor, y_cor, trashX, trashY);
-					selectWindow("Results"); 
-					run("Close");
 				}else {
 					x_cor=getResult("X", 0);
 					y_cor=getResult("Y", 0);
-					selectWindow("Results"); 
-					run("Close");
-				}
-				if (Open){
-					IJ.renameResults("Root_Results","Results");
 				}
 			}
+			selectWindow("Results"); 
+			run("Close");
+			
+			if (Open){
+				IJ.renameResults("Main_Results","Results");
+			}
+			
 			if (x_cor==x_i && y_cor==y_i) {
 				x_o=x_i;
 				y_o=y_i;
@@ -352,8 +354,12 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 				min[i]=mi;
 				max[i]=ma;
 				std[i]=st;
+				Poles_Coordinates[5+r]=x_i;
+				Poles_Coordinates[5+r+1]=y_i;
 			} else {
 				TotFlu_Final=TotFlu_o;
+				Poles_Coordinates[5+r]=x_o;
+				Poles_Coordinates[5+r+1]=y_o;
 			}
 			TotalFluPole[i]=TotFlu_Final;
 			print("Conclusion: Pole i="+i+" at "+x_o+";"+y_o+" has "+TotalFluPole[i]);
@@ -385,7 +391,7 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 			selectImage(IDiSCAT);
 			roiManager("Show All with labels");
 			roiManager("Select", LastROI-1);
-			makeOval(Poles_Coordinates[5+r]-round(pole_rad/2),Poles_Coordinates[5+r+1]-round(pole_rad/2),pole_rad,pole_rad);
+			makeOval(Poles_Coordinates[5+r],Poles_Coordinates[5+r+1],pole_rad,pole_rad);
 			waitForUser( "Pause","Count pili and flagella at the "+Pole[i]+" pole");
 			Dialog.create("Pole at ("+Poles_Coordinates[5+r]+", "+Poles_Coordinates[5+r+1]+")");
 				Dialog.addNumber("Number of pili at the pole", 0);
@@ -404,6 +410,7 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 			print("Pole order is "+Pole[i]+", p="+p+" and r="+r);
 			setResult("X_Pole"+Pole[i], n, Poles_Coordinates[5+r]);
 			setResult("Y_Pole"+Pole[i], n, Poles_Coordinates[5+r+1]);
+			setResult("Pole_Radius"+Pole[i], n, pole_rad);
 			setResult("AreaPole"+Pole[i], n, area[p]);
 			setResult("MeanPole"+Pole[i], n, mean[p]);
 			setResult("TotalFluorescencePole"+Pole[i], n, TotalFluPole[p]);
@@ -417,7 +424,7 @@ function cellAnalysis(Pole, IDiSCAT, IDReg, radius, AddCell, Discard_cell, Globa
 		ratio1=(TotalFluPole[0]+TotalFluPole[1])/cellFlu;
 		ratio2=(area[0]+area[1])/(Cellarea-(area[0]+area[1]));
 		PolarRatio=ratio1/ratio2;
-		print(ratio1+"% / "+ratio2+"% = "+PolarRatio);
+		print(ratio1+"% / "+ratio2+"% = "+PolarRatio+"\n");
 		setResult("PolarRatio", n, PolarRatio);	
 		if (RetractCount) {
 
