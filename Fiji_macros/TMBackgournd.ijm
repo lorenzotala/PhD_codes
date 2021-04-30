@@ -75,7 +75,8 @@ if(doBPfilter){
 }*/
 //print(f);
 for (i=1;i<f+1;i++){
-		setSlice(i);
+		//setSlice(i);
+		Stack.setFrame(i);
 		
 		getStatistics(area, mean);
 		run("Subtract...", "value="+mean);
