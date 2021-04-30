@@ -60,35 +60,41 @@ for h=1:NbFrames
     Tot_CellID=[Tot_CellID;CellID];
     temp=ones(length(CellID),1)*h;
     Frames=[Frames;temp];
-    
+    figure(1);
+    imshow(I2_Fimx);
     set(gcf, 'units','normalized','outerposition',[0 1 0.9 0.5]);
     for Cell=transpose(CellID)
         disp(strcat('Cell - ', num2str(Cell)));
         Centroid=DataSet.frames(h).cells.Stats(Cell).Centroid;
         CellLength=DataSet.frames(h).cells.Stats(Cell).CellLength;
         CellWidth=DataSet.frames(h).cells.Stats(Cell).CellWidth;
-        CellOutline=DataSet.frames.cells.Stats(h).CellOutlineCoordinates;
-        MedialAxis=DataSet.frames.cells.Stats(h).CellMedialAxisCoordinates;
+        CellOutline=DataSet.frames(h).cells.Stats(Cell).CellOutlineCoordinates;
+        MedialAxis=DataSet.frames(h).cells.Stats(Cell).CellMedialAxisCoordinates;
         IntensityProfile_Fimx=DataSet.frames(h).cells.Stats(Cell).MedialAxisIntensity_mNG_Fimx;
         IntensityProfile_PilG=DataSet.frames(h).cells.Stats(Cell).MedialAxisIntensity_mScI_PilG;
-        x1=round(Centroid(1)-CellLength);
-        y1=round(Centroid(2)-CellLength);
-        x2=round(Centroid(1)+CellLength);
-        y2=round(Centroid(2)+CellLength);
+        ROI_scale=1;
+        x1=round(Centroid(1)-ROI_scale*CellLength);
+        y1=round(Centroid(2)-ROI_scale*CellLength);
+        x2=round(Centroid(1)+ROI_scale*CellLength);
+        y2=round(Centroid(2)+ROI_scale*CellLength);
         croppedImage_Fimx = I2_Fimx(y1:y2,x1:x2);
         croppedImage_PilG = I2_PilG(y1:y2,x1:x2);
         croppedImage_PC = I2_PC(y1:y2,x1:x2);
         mNG_Fimx_corr=[x1+1, y1-2];
         mNG_PilG_corr=[x1-1, y1-1];
-        fig=figure(1);
+        
+        fig=figure(10000);
         
         subplot(2,3,2);
         imshow(croppedImage_Fimx);
         axis on;
         title(strcat('Frame ',num2str(h) ,' - Cell  ',num2str(Cell), 'FimX'), 'FontSize', fontSize);
         hold on;
+        a=[round(Centroid(1)-mNG_Fimx_corr(1)), round(Centroid(2)-mNG_Fimx_corr(2))]
+        [CellOutline(:,2)-mNG_Fimx_corr(1), CellOutline(:,1)-mNG_Fimx_corr(2)]
         plot(CellOutline(:,2)-mNG_Fimx_corr(1),CellOutline(:,1)-mNG_Fimx_corr(2), 'Color', [0.9, 0.7, 0.2], 'LineWidth', 0.5);
         plot(MedialAxis(1,2)-mNG_Fimx_corr(1),MedialAxis(1,1)-mNG_Fimx_corr(2), 'og', 'MarkerSize', CellWidth*0.5, 'MarkerFace','g');
+        plot(round(Centroid(1)-mNG_Fimx_corr(1)),round(Centroid(2)-mNG_Fimx_corr(2)), 'dg', 'MarkerSize', CellWidth*0.5, 'MarkerFace','g');
         subplot(2,3,3);
         imshow(croppedImage_PilG);
         axis on;
@@ -126,8 +132,8 @@ for h=1:NbFrames
         %PilG computation
         Start_Profile_mNG_PilG=[MedialAxis(1,2)-mNG_PilG_corr(1),MedialAxis(1,1)-mNG_PilG_corr(2)];
         End_Profile_mNG_PilG=[MedialAxis(length(MedialAxis),2)-mNG_PilG_corr(1),MedialAxis(length(MedialAxis),1)-mNG_PilG_corr(2)];
-        Start_dist_mNG_PilG=norm(Start_Profile_mNG_PilG-[x(2),y(2)])
-        End_dist_mNG_PilG=norm(End_Profile_mNG_PilG-[x(2),y(2)])
+        Start_dist_mNG_PilG=norm(Start_Profile_mNG_PilG-[x(2),y(2)]);
+        End_dist_mNG_PilG=norm(End_Profile_mNG_PilG-[x(2),y(2)]);
         Bpole_PilG=0;
         if End_dist_mNG_PilG < Start_dist_mNG_PilG
             Bpole_PilG=1;
@@ -156,6 +162,8 @@ for h=1:NbFrames
         imwrite(croppedImage_PilG,char(strcat(save_dir, '/PilG_Frame',num2str(h) ,'_Cell',num2str(Cell),'.png')),'png')
         k=k+1;
         hold off;
+        clf(fig,'reset');
+        clear [CellOutline, MedialAxis, IntensityProfile_Fimx, IntensityProfile_PilG]
     end
     
     csvwrite(char(strcat(save_dir,'/','Frame ',num2str(h) ,'CellID.csv')),CellID);
