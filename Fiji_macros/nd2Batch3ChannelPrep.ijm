@@ -72,6 +72,7 @@ if (dirList.length==0) { // Do if all images are located in the user defined di
 	print("tot images = " + totImages+"\n");
 	progress_steps=floor(progressBar_length/totImages);
 	progressBar=genStr(empty_character, progressBar_length);
+	im=0;
 	for (i=0; i<list.length; i++) {
 	     if (endsWith(list[i], ".nd2")){
 	     	print("\\Update:"+"Progress:"+progressBar+" : "+percent+"%");		
@@ -106,12 +107,16 @@ if (dirList.length==0) { // Do if all images are located in the user defined di
 			saveAs("Tiff", splitDir+File.separator+channel3+File.separator+imgName+".tif");
 			
 			run("Close All");
+			percent=floor((im)/totImages*100);
+			progress=genStr("#", (im)*progress_steps);
+			empty_spaces=genStr(empty_character, progressBar_length-(im)*progress_steps);
+			progressBar=progress+empty_spaces;
+			im=im+1;
 	    }
-	     percent=floor((i+1)/list.length*100);
-	     progress=genStr("#", (i+1)*progress_steps);
-	     empty_spaces=genStr(empty_character, progressBar_length-(i+1)*progress_steps);
-	     progressBar=progress+empty_spaces;
+	     
 	}
+	progressBar=genStr("#", progressBar_length);
+	percent=100;
 	print("\\Update:"+"Progress:"+progressBar+" : "+percent+"%");
 	run("Close All");
 } else{ // Do if you want to process all subfolder. As for example if you want to process different strains made in one day.
@@ -144,6 +149,7 @@ if (dirList.length==0) { // Do if all images are located in the user defined di
 		print("tot images = " + totImages+"\n");
 		progress_steps=floor(progressBar_length/totImages);
 		progressBar=genStr(empty_character, progressBar_length);
+		im=0;
 		for (i=0; i<list.length; i++) {
 		     if (endsWith(list[i], ".nd2")){
 		     	print("\\Update:"+"Progress:"+progressBar+" : "+percent+"%");		
@@ -178,12 +184,15 @@ if (dirList.length==0) { // Do if all images are located in the user defined di
 				saveAs("Tiff", splitDir+File.separator+channel3+File.separator+imgName+".tif");
 				
 				run("Close All");
+				percent=floor((im)/totImages*100);
+				progress=genStr("#", (im)*progress_steps);
+				empty_spaces=genStr(empty_character, progressBar_length-(im)*progress_steps);
+				progressBar=progress+empty_spaces;
+				im=im+1;
 		    }
-		    percent=floor((i+1)/list.length*100);
-		    progress=genStr("#", (i+1)*progress_steps);
-	     	empty_spaces=genStr(empty_character, progressBar_length-(i+1)*progress_steps);
-	     	progressBar=progress+empty_spaces;
 		}
+	progressBar=genStr("#", progressBar_length);
+	percent=100;
 	print("\\Update:"+"Progress:"+progressBar+" : "+percent+"%");
 	run("Close All");
 	}
@@ -216,4 +225,4 @@ function genStr(Char, Reps){
 		my_string=my_string+Char;
 	}
 	return my_string;
-}
+}
