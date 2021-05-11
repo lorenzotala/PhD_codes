@@ -13,6 +13,12 @@ Title=getTitle;
 id1=getImageID();
 BitDepth=bitDepth();
 Path=getDirectory("image");
+getDimensions(a,b,c,Slices,Frames);
+if (Slices>Frames) {
+	use_slices=true;
+} else {
+	use_slices=false;
+}
 
 TimeA=getTime;
 if (BitDepth!=32) run("32-bit");
@@ -32,15 +38,23 @@ if (indexOf(Process, "Median")>=0) {
 	close();
 	selectImage(id3);
 } else if (indexOf(Process, "Differential")>=0) {
-	getDimensions(a,b,c,Slices,f);
+	getDimensions(a,b,c,Slices,Frames);
 	run("Duplicate...", "title="+Title+"_1 duplicate");
 	IDcopy1=getImageID();
 	run("Duplicate...", "title="+Title+"_2 duplicate");
 	IDcopy2=getImageID();
-	setSlice(Slices);
+	if(use_slices){
+		setSlice(Slices);
+	} else {
+		Stack.setFrame(Frames);
+	}
 	run("Delete Slice");
 	selectImage(IDcopy1);
-	setSlice(1);
+	if(use_slices){
+		setSlice(1);
+	} else {
+		Stack.setFrame(1);
+	}
 	run("Delete Slice");
 	imageCalculator("Subtract create 32-bit stack", IDcopy1,IDcopy2);
 	id3=getImageID();
@@ -54,8 +68,18 @@ if (indexOf(Process, "Median")>=0) {
 
 ID2=getImageID();
 Title2=getTitle();
-getDimensions(a,b,c,f, Slices);
+getDimensions(a,b,c,Slices,Frames);
+if (Slices>Frames) {
+	use_slices=true;
+} else {
+	use_slices=false;
+}
 
+if(use_slices){
+	f=Slices;
+} else {
+	f=Frames;
+}
 run("Set Measurements...", "area mean standard min median stack display redirect=None decimal=3");
 
 if(doBPfilter){
@@ -75,12 +99,15 @@ if(doBPfilter){
 }*/
 //print(f);
 for (i=1;i<f+1;i++){
-		//setSlice(i);
+	if(use_slices){
+		setSlice(i);
+	} else {
 		Stack.setFrame(i);
+	}
 		
 		getStatistics(area, mean);
 		run("Subtract...", "value="+mean);
-	}
+}
 //setMinAndMax(-0.0030, 0.0020);
 //setMinAndMax(-0.0015, 0.0015);
 getStatistics(area, mean, min, max, std, histogram);
