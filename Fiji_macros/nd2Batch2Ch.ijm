@@ -25,9 +25,8 @@ while (stopDir) {
 }
 print(dirList.length);
 if (dirList.length==0) {
-	print("GoodJooob");
 	Dir=dir;
-	print("Welcome to the extraction of the PhaseContrast and Green fluorescence channel of nd2 files");
+	print("Welcome to the extraction of the PhaseContrast and YFP channel of nd2 files");
 	splitDir=Dir+"Split";
 	print("Images will be saved in the following folder:\n" + splitDir);
 	print("Extraction in progress, please wait...");
@@ -84,7 +83,7 @@ if (dirList.length==0) {
 	print("\\Update:"+percent+"%"+progressBar);
 	run("Close All");
 } else {
-	print("Welcome to the extraction of the PhaseContrast and Green fluorescence channel of nd2 files");
+	print("Welcome to the extraction of the PhaseContrast and YFP channel of nd2 files");
 	for (j=0; j<dirList.length; j++) {
 		Dir=dir+dirList[j];
 		splitDir=Dir+"Split";
