@@ -22,13 +22,13 @@ from bokeh.layouts import row
 bokeh.io.output_notebook()
 
 def combineDataSets(data_path, data_summary_path, working_path):
-    name = data_path.split('/')
+    name = data_path.split('\\')
     if not name[-1]:
         name.pop()
     output_name = name[-1].split('_',1)[1]
     os.chdir(working_path)
     #Check if it exist and create the working data path
-    working_data_path = data_summary_path + 'Enhanced_' + output_name + '//'
+    working_data_path = os.path.join(data_summary_path,'Enhanced_' + output_name)
     if not os.path.exists(working_data_path):
         os.mkdir(working_data_path)
     #Find all csv files within the folder and subfolders
@@ -43,14 +43,14 @@ def combineDataSets(data_path, data_summary_path, working_path):
     for file in list_csv:
         df_temp = pd.read_csv(file, sep=',', na_values='*')
         split_name=file.rsplit('Data_',2)[1].rsplit('_PaQa',100)
-        file_name = file.rsplit("/",2)[2]
+        file_name = file.rsplit("\\",2)[2]
         df_temp['Strain'] = split_name[0]
         if 'sol' in file:
             df_temp['Growth']='Solid'
         else:
             df_temp['Growth']='Liquid'
         df_temp['Bio_Rep']=int(split_name[len(split_name)-1].rsplit('BR=', 2)[1].rsplit('.',2)[0])
-        df_temp.to_csv(working_data_path + 'enhanced_' + file_name, index = None, header=True)
+        df_temp.to_csv(os.path.join(working_data_path, 'enhanced_' + file_name), index = None, header=True)
     #Get the list of enhanced files
     list_enhanced_csv = []
     for root, dirs, files in os.walk(working_data_path, topdown=False):
@@ -93,7 +93,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
                 strain_name=wt
                 labels[n] = strain_name + ' ' + 'Liquid'
             indexes[n] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid'))
-            print(wt+' Liquid mean='+str(WT_mean))
+            print(wt+' Liquid biorep means='+str(WT_mean) + ', mean='+str(np.mean(WT_mean)) )
             n=n+1
         #Extracting data for the user-defined WT strain on Solid
         Strain_mean=np.array(means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), param])
@@ -108,7 +108,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
                 strain_name=wt
                 labels[n] = strain_name + ' ' + 'Solid'
             indexes[n] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid'))
-            print(wt+' Solid mean='+str(Strain_mean))
+            print(wt+' Solid biorep means='+str(Strain_mean) + ', mean='+str(np.mean(Strain_mean)) )
             print(wt+' Solid ref fold increase = '+str(Strain_mean/np.mean(WT_mean)) + ', mean = ' + str(np.mean(Strain_mean/np.mean(WT_mean))))
             ref_fold = np.divide(Strain_mean, WT_mean)
             print(wt+' Solid biorep fold increase='+str(ref_fold) + ', mean = ' + str(np.mean(ref_fold)))
@@ -122,7 +122,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
                     #Normalize each biological mean by the WT liquid mean and store it in the new means3 dataframe
                     Norm_mean=Strain_mean/np.mean(WT_mean)
                     means3.loc[((means3['Strain'] == (ordering)) & means3['Growth'].str.match(g)), param]=Norm_mean
-                    print(ordering+' '+g+' mean='+str(Strain_mean))
+                    print(ordering+' '+g+' biorep means='+str(Strain_mean) + ', mean='+str(np.mean(Strain_mean)))
                     print(ordering+' '+g+' ref fold increase = '+str(Strain_mean/np.mean(WT_mean)) + ', mean = ' + str(np.mean(Strain_mean/np.mean(WT_mean))))
                     if len(WT_mean)==len(Strain_mean):
                         ref_fold = np.divide(Strain_mean, WT_mean)
@@ -188,7 +188,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             size = 10,
             line_color = 'black',
             fill_color = 'white',
-            legend_label = "means of replicates"
+            legend = "means of replicates"
         )
         p.circle(
             source = strain_mean,
@@ -197,7 +197,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             size = 10,
             line_color = 'black',
             fill_color = 'black',
-            legend_label = "means across replicates"
+            legend = "means across replicates"
         )
         p.add_tools(HoverTool(
                 tooltips=[
@@ -212,7 +212,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             y = [0, len(labels)],
             line_width = 2,
             line_color = 'red',
-            legend_label = "Reference"
+            legend = "Reference"
         )
     else:
         print('Not a list')
@@ -316,7 +316,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             y = [0, len(labels)],
             line_width = 2,
             line_color = 'red',
-            legend_label = "Reference"
+            legend = "Reference"
         )
     return p, means3, df3
 
@@ -349,7 +349,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
                 strain_name=wt
                 labels[n] = strain_name + ' ' + 'Liquid'
             indexes[n] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid'))
-            print(wt+' Liquid mean='+str(WT_mean))
+            print(wt+' Liquid mean='+str(WT_mean) + ', mean='+str(np.mean(WT_mean)))
             n=n+1
         #Extracting data for the user-defined WT strain on Solid
         Strain_mean=np.array(means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), param])
@@ -364,7 +364,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
                 strain_name=wt
                 labels[n] = strain_name + ' ' + 'Solid'
             indexes[n] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid'))
-            print(wt+' Solid mean='+str(Strain_mean))
+            print(wt+' Solid mean='+str(Strain_mean) + ', mean='+str(np.mean(Strain_mean)))
             print(wt+' Solid ref fold increase = '+str(Strain_mean/np.mean(WT_mean)) + ', mean = ' + str(np.mean(Strain_mean/np.mean(WT_mean))))
             ref_fold = np.divide(Strain_mean, WT_mean)
             print(wt+' Solid biorep fold increase='+str(ref_fold) + ', mean = ' + str(np.mean(ref_fold)))
@@ -378,7 +378,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
                     #Normalize each biological mean by the WT liquid mean and store it in the new means3 dataframe
                     Norm_mean=Strain_mean/np.mean(WT_mean)
                     means3.loc[((means3['Strain'] == (ordering)) & means3['Growth'].str.match(g)), param]=Norm_mean
-                    print(ordering+' '+g+' mean='+str(Strain_mean))
+                    print(ordering+' '+g+' mean='+str(Strain_mean) + ', mean='+str(np.mean(Strain_mean)))
                     print(ordering+' '+g+' ref fold increase = '+str(Strain_mean/np.mean(WT_mean)) + ', mean = ' + str(np.mean(Strain_mean/np.mean(WT_mean))))
                     if len(WT_mean)==len(Strain_mean):
                         ref_fold = np.divide(Strain_mean, WT_mean)
@@ -442,7 +442,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == (wt)) & strain_mean['Growth'].str.match('Liquid')), 'Labels'])-0.2, np.mean(strain_mean.loc[((strain_mean['Strain'] == (wt)) & strain_mean['Growth'].str.match('Liquid')), 'Labels'])+0.2],
             line_width = 3,
             line_color = 'black',
-            legend_label = "mean"
+            legend = "mean"
         )
         p.circle(
             source = means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid'))],
@@ -466,7 +466,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
                 size = 10,
                 line_color = 'black',
                 fill_color = colors[o+2],
-                legend_label = "means of replicates"
+                legend = "means of replicates"
             )
             p.line(
                 x = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match('Liquid')), 'PaQa_ratio']), np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match('Liquid')), 'PaQa_ratio'])],
@@ -488,7 +488,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             line_width = 1,
             line_color = 'black',
             line_dash = 'dotted',
-            legend_label = "Reference"
+            legend = "Reference"
         )
     else:
         print('Not a list')
@@ -515,7 +515,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
         df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), param] = df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), param]/np.mean(WT_mean)
         labels[len(labels)-1] = 'WT'+' '+'Liquid'
         indexes[0] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid'))
-        print(wt+' Liquid mean='+str(WT_mean))
+        print(wt+' Liquid mean='+str(WT_mean) + ', mean='+str(np.mean(WT_mean)))
         df3.loc[((df2['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), 'Labels'] = (val-1)
         means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), 'Labels'] = (val-1)
         Strain_mean=np.array(means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), param])
@@ -524,7 +524,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
         df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), param] = df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), param]/np.mean(WT_mean)
         labels[len(labels)-2] = 'WT'+' '+'Solid'
         indexes[1] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid'))
-        print(wt+' Solid mean='+str(Strain_mean))
+        print(wt+' Solid mean='+str(Strain_mean) + ', mean='+str(np.mean(Strain_mean)))
         print(wt+' Solid fold increase='+str(Strain_mean/np.mean(WT_mean)))
         val = val - 2
         for o, ordering in enumerate(order):
@@ -533,7 +533,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             Strain_mean=np.array(means3.loc[((means3['Strain'] == (ordering)) & means3['Growth'].str.match(growth)), param])
             Norm_mean=Strain_mean/np.mean(WT_mean)
             means3.loc[((means3['Strain'] == (ordering)) & means3['Growth'].str.match(growth)), param]=Norm_mean
-            print(ordering+' mean='+str(Strain_mean))
+            print(ordering+' mean='+str(Strain_mean) + ', mean='+str(np.mean(Strain_mean)))
             print(ordering+' fold increase='+str(Strain_mean/np.mean(WT_mean)))
             df3.loc[((df2['Strain'] == (ordering)) & df3['Growth'].str.match(growth)), param] = df3.loc[((df2['Strain'] == (ordering)) & df3['Growth'].str.match(growth)), param]/np.mean(WT_mean)
             if '-' in ordering:
@@ -579,7 +579,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             size = 10,
             line_color = 'black',
             fill_color = colors[o+2],
-            legend_label = "means of replicates"
+            legend = "means of replicates"
             )
         p.circle(
             source = strain_mean,
@@ -602,7 +602,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             y = [0, len(labels)],
             line_width = 2,
             line_color = 'red',
-            legend_label = "Reference"
+            legend = "Reference"
         )
     return p, means3, df3
 
