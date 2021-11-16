@@ -459,21 +459,22 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             line_color = 'black',
         )
         for o, ordering in enumerate(order):
-            p.circle(
-                source = means3.loc[((means3['Strain'] == ordering) & means3['Growth'].str.match('Liquid'))],
-                x = param,
-                y = 'Labels',
-                size = 10,
-                line_color = 'black',
-                fill_color = colors[o+2],
-                legend = "means of replicates"
-            )
-            p.line(
-                x = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match('Liquid')), 'PaQa_ratio']), np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match('Liquid')), 'PaQa_ratio'])],
-                y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match('Liquid')), 'Labels'])-0.2, np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match('Liquid')), 'Labels'])+0.2],
-                line_width = 3,
-                line_color = 'black'
-            )
+            for g in growth:
+                p.circle(
+                    source = means3.loc[((means3['Strain'] == ordering) & means3['Growth'].str.match(g))],
+                    x = param,
+                    y = 'Labels',
+                    size = 10,
+                    line_color = 'black',
+                    fill_color = colors[o+2],
+                    legend = "means of replicates"
+                )
+                p.line(
+                    x = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'PaQa_ratio']), np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'PaQa_ratio'])],
+                    y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'Labels'])-0.2, np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'Labels'])+0.2],
+                    line_width = 3,
+                    line_color = 'black'
+                )
         p.add_tools(HoverTool(
                 tooltips=[
                     ('Strain', '@{Strain}'),
