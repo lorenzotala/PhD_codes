@@ -188,7 +188,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             size = 10,
             line_color = 'black',
             fill_color = 'white',
-            legend = "means of replicates"
+            legend_label = "means of replicates"
         )
         p.circle(
             source = strain_mean,
@@ -197,7 +197,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             size = 10,
             line_color = 'black',
             fill_color = 'black',
-            legend = "means across replicates"
+            legend_label = "means across replicates"
         )
         p.add_tools(HoverTool(
                 tooltips=[
@@ -212,7 +212,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             y = [0, len(labels)],
             line_width = 2,
             line_color = 'red',
-            legend = "Reference"
+            legend_label = "Reference"
         )
     else:
         print('Not a list')
@@ -316,7 +316,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             y = [0, len(labels)],
             line_width = 2,
             line_color = 'red',
-            legend = "Reference"
+            legend_label = "Reference"
         )
     return p, means3, df3
 
@@ -442,7 +442,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == (wt)) & strain_mean['Growth'].str.match('Liquid')), 'Labels'])-0.2, np.mean(strain_mean.loc[((strain_mean['Strain'] == (wt)) & strain_mean['Growth'].str.match('Liquid')), 'Labels'])+0.2],
             line_width = 3,
             line_color = 'black',
-            legend = "mean"
+            legend_label = "mean"
         )
         p.circle(
             source = means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid'))],
@@ -467,11 +467,11 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
                     size = 10,
                     line_color = 'black',
                     fill_color = colors[o+2],
-                    legend = "means of replicates"
+                    legend_label = "means of replicates"
                 )
                 p.line(
                     x = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'PaQa_ratio']), np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'PaQa_ratio'])],
-                    y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'Labels'])-0.2, np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'Labels'])+0.2],
+                    y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'Labels'])-0.3, np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(g)), 'Labels'])+0.3],
                     line_width = 3,
                     line_color = 'black'
                 )
@@ -489,7 +489,7 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             line_width = 1,
             line_color = 'black',
             line_dash = 'dotted',
-            legend = "Reference"
+            legend_label = "Reference"
         )
     else:
         print('Not a list')
@@ -572,24 +572,34 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
             line_color = 'black',
             fill_color = colors[1]
         )
+        p.line(
+            x = [np.mean(strain_mean.loc[((strain_mean['Strain'] == wt) & strain_mean['Growth'].str.match('Liquid')), 'PaQa_ratio']), np.mean(strain_mean.loc[((strain_mean['Strain'] == wt) & strain_mean['Growth'].str.match('Liquid')), 'PaQa_ratio'])],
+            y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == wt) & strain_mean['Growth'].str.match('Liquid')), 'Labels'])-0.3, np.mean(strain_mean.loc[((strain_mean['Strain'] == wt) & strain_mean['Growth'].str.match('Liquid')), 'Labels'])+0.3],
+            line_width = 3,
+            line_color = 'black'
+        )
+        p.line(
+            x = [np.mean(strain_mean.loc[((strain_mean['Strain'] == wt) & strain_mean['Growth'].str.match('Solid')), 'PaQa_ratio']), np.mean(strain_mean.loc[((strain_mean['Strain'] == wt) & strain_mean['Growth'].str.match('Solid')), 'PaQa_ratio'])],
+            y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == wt) & strain_mean['Growth'].str.match('Solid')), 'Labels'])-0.3, np.mean(strain_mean.loc[((strain_mean['Strain'] == wt) & strain_mean['Growth'].str.match('Solid')), 'Labels'])+0.3],
+            line_width = 3,
+            line_color = 'black'
+        )
         for o, ordering in enumerate(order):
             p.circle(
-            source = means3.loc[((means3['Strain'] == ordering) & means3['Growth'].str.match('Liquid'))],
+            source = means3.loc[((means3['Strain'] == ordering) & means3['Growth'].str.match(growth))],
             x = param,
             y = 'Labels',
             size = 10,
             line_color = 'black',
             fill_color = colors[o+2],
-            legend = "means of replicates"
+            legend_label = "means of replicates"
             )
-        p.circle(
-            source = strain_mean,
-            x = param,
-            y = 'Labels',
-            size = 10,
-            line_color = 'black',
-            fill_color = 'black',
-        )
+            p.line(
+                x = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(growth)), 'PaQa_ratio']), np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(growth)), 'PaQa_ratio'])],
+                y = [np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(growth)), 'Labels'])-0.3, np.mean(strain_mean.loc[((strain_mean['Strain'] == ordering) & strain_mean['Growth'].str.match(growth)), 'Labels'])+0.3],
+                line_width = 3,
+                line_color = 'black'
+            )
         p.add_tools(HoverTool(
                 tooltips=[
                     ('Strain', '@{Strain}'),
@@ -601,9 +611,10 @@ def plottingBioReps(df, means, wt, order, strain_to_remove, growth, param, color
         p.line(
             x = [1, 1],
             y = [0, len(labels)],
-            line_width = 2,
-            line_color = 'red',
-            legend = "Reference"
+            line_width = 1,
+            line_color = 'black',
+            line_dash = 'dotted',
+            legend_label = "Reference"
         )
     return p, means3, df3
 
