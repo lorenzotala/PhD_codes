@@ -56,7 +56,7 @@ if (indexOf(Process, "Median")>=0) {
 		Stack.setFrame(1);
 	}
 	run("Delete Slice");
-	imageCalculator("Subtract create 32-bit stack", IDcopy1,IDcopy2);
+	imageCalculator("Divide create 32-bit stack", IDcopy1,IDcopy2);
 	id3=getImageID();
 	rename("Differential_"+Title);
 	selectImage(IDcopy1);
