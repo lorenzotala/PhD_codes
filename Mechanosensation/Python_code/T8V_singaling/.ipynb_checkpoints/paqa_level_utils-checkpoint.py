@@ -67,6 +67,7 @@ def combineDataSets(data_path, data_summary_path, working_path):
 def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, scale, GraphTitle, graph_size):
     df2 = df.copy()
     means2 = means.copy()
+    #Check if you want to compare liquid vs solid growth
     if isinstance(growth, list):
         #Removing unwanted strains from plot
         if len(strain_to_remove) > 0:
@@ -82,7 +83,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
         n=0
         #Extracting data for the user-defined WT strain on liquid
         WT_mean=np.array(means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Liquid')), param])
-        if WT_mean.any():
+        if WT_mean.any(): #Checking if we actually ger a value
             Norm_mean=WT_mean/np.mean(WT_mean)
             means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Liquid')), param]=Norm_mean
             df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), param] = df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), param]/np.mean(WT_mean)
@@ -215,7 +216,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             legend_label = "Reference"
         )
     else:
-        print('Not a list')
+        #print('Not a list')
         if growth == 'Liquid':
             ungrowth = 'Solid'
         else:
