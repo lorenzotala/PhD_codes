@@ -18,7 +18,7 @@ from bokeh.layouts import row
 
 bokeh.io.output_notebook()
 
-def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, scale, GraphTitle):
+def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, scale, GraphTitle, TrueStrainName):
     df2 = df.copy()
     means2 = means.copy()
     
@@ -27,7 +27,9 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             for strain in strain_to_remove:
                 df2 = df2.drop(df2[(df2['Strain'] == strain)].index)
                 means2 = means2.drop(means2[(means2['Strain'] == strain)].index)
-        val = 0.5
+        df3 = df2.copy()
+        means3 = means2.copy()
+        val = 0.5+len(order)*2+1
         labels = [None]*(2+len(order)*2)
         indexes = [None]*(2+len(order)*2)
         df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), 'Labels'] = val
@@ -36,21 +38,27 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
         Norm_mean=WT_mean/np.mean(WT_mean)
         means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Liquid')), param]=Norm_mean
         df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), param] = df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), param]/np.mean(WT_mean)
-        labels[0] = 'WT'+' '+'Liquid'
-        indexes[0] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid'))
+        if TrueStrainName:
+            labels[len(labels)-1] = wt+' Liquid'
+        else:
+            labels[len(labels)-1] = 'Ref WT'+' '+'Liquid'
+        indexes[len(labels)-1] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid'))
         print(wt+' Liquid mean='+str(WT_mean))
-        df3.loc[((df2['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), 'Labels'] = (val+1)
-        means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), 'Labels'] = (val+1)
+        df3.loc[((df2['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), 'Labels'] = (val-1)
+        means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), 'Labels'] = (val-1)
         Strain_mean=np.array(means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), param])
         Norm_mean=Strain_mean/np.mean(WT_mean)
         means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), param]=Norm_mean
         df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), param] = df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), param]/np.mean(WT_mean)
-        labels[1] = 'WT'+' '+'Solid'
-        indexes[1] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid'))
+        if TrueStrainName:
+            labels[len(labels)-2] = wt+' Solid'
+        else:
+            labels[len(labels)-2] = 'Ref WT'+' '+'Solid'
+        indexes[len(labels)-2] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid'))
         print(wt+' Solid mean='+str(Strain_mean))
         print(wt+' Solid fold increase='+str(Strain_mean/np.mean(WT_mean)))
-        val = val + 2
-        n=2
+        val = val - 2
+        n=len(labels)-3
         for o, ordering in enumerate(order):
             for a, g in enumerate(growth):
                 df3.loc[((df2['Strain'] == (ordering)) & df3['Growth'].str.match(g)), 'Labels'] = val
@@ -61,12 +69,15 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
                 print(ordering+' '+g+' mean='+str(Strain_mean))
                 print(ordering+' '+g+' fold increase='+str(Strain_mean/np.mean(WT_mean)))
                 df3.loc[((df2['Strain'] == (ordering)) & df3['Growth'].str.match(g)), param] = df3.loc[((df2['Strain'] == (ordering)) & df3['Growth'].str.match(g)), param]/np.mean(WT_mean)
-                strain_name=ordering.replace('fliC-', '')
-                strain_name=strain_name.replace('-', '')
-                labels[n] = chr(916)+strain_name + ' ' +g
+                if TrueStrainName:
+                    labels[n] = ordering + ' ' +g
+                else:
+                    strain_name=ordering.replace('fliC-', '')
+                    strain_name=strain_name.replace('-', '')
+                    labels[n] = chr(916)+strain_name + ' ' +g
                 indexes[n] = ((df3['Strain'] == (ordering)) & df3['Growth'].str.match(g))
-                val = val + 1
-                n=n+1
+                val = val - 1
+                n=n-1
         lookupdf2=df3.groupby(['Strain', 'Growth', 'Labels', 'Bio_Rep'])[param].median().to_frame().reset_index()
         p = bokeh.plotting.figure(
             width=600, 
@@ -82,7 +93,7 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
                 source=df3.loc[index, :],
                 x=param,
                 y=jitter('Labels', width=0.3, range=p.y_range), 
-                color = colors[i],
+                color = colors[len(indexes)-1-i],
                 alpha=0.3,
                 #legend = labelsAll[i]
             )
@@ -126,8 +137,11 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
         Norm_mean=WT_mean/np.mean(WT_mean)
         means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Liquid')), param]=Norm_mean
         df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), param] = df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid')), param]/np.mean(WT_mean)
-        labels[len(labels)-1] = 'WT'+' '+'Liquid'
-        indexes[0] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid'))
+        if TrueStrainName:
+            labels[len(labels)-1] = wt+' Liquid'
+        else:
+            labels[len(labels)-1] = 'Ref WT'+' '+'Liquid'
+        indexes[len(labels)-1] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Liquid'))
         print(wt+' Liquid mean='+str(WT_mean))
         df3.loc[((df2['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), 'Labels'] = (val-1)
         means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), 'Labels'] = (val-1)
@@ -135,8 +149,11 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
         Norm_mean=Strain_mean/np.mean(WT_mean)
         means3.loc[((means3['Strain'] == (wt)) & means3['Growth'].str.match('Solid')), param]=Norm_mean
         df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), param] = df3.loc[((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid')), param]/np.mean(WT_mean)
-        labels[len(labels)-2] = 'WT'+' '+'Solid'
-        indexes[1] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid'))
+        if TrueStrainName:
+            labels[len(labels)-2] = wt+' Solid'
+        else:
+            labels[len(labels)-2] = 'WT'+' '+'Solid'
+        indexes[len(labels)-2] = ((df3['Strain'] == (wt)) & df3['Growth'].str.match('Solid'))
         print(wt+' Solid mean='+str(Strain_mean))
         print(wt+' Solid fold increase='+str(Strain_mean/np.mean(WT_mean)))
         val = val - 2
@@ -149,10 +166,13 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
             print(ordering+' mean='+str(Strain_mean))
             print(ordering+' fold increase='+str(Strain_mean/np.mean(WT_mean)))
             df3.loc[((df2['Strain'] == (ordering)) & df3['Growth'].str.match(growth)), param] = df3.loc[((df2['Strain'] == (ordering)) & df3['Growth'].str.match(growth)), param]/np.mean(WT_mean)
-            strain_name=ordering.replace('fliC-', '')
-            strain_name=strain_name.replace('-', '')
-            labels[len(labels)-3-o] = chr(916)+strain_name
-            indexes[o+2] = ((df3['Strain'] == (ordering)) & df3['Growth'].str.match(growth))
+            if TrueStrainName:
+                labels[len(labels)-3-o] = ordering
+            else:
+                strain_name=ordering.replace('fliC-', '')
+                strain_name=strain_name.replace('-', '')
+                labels[len(labels)-3-o] = chr(916)+strain_name
+            indexes[len(labels)-3-o] = ((df3['Strain'] == (ordering)) & df3['Growth'].str.match(growth))
             val = val - 1
         lookupdf2=df3.groupby(['Strain', 'Growth', 'Labels', 'Bio_Rep'])[param].median().to_frame().reset_index()
         p = bokeh.plotting.figure(
@@ -165,11 +185,17 @@ def plottingData(df, means, wt, order, strain_to_remove, growth, param, colors, 
         )
         p.yaxis.major_label_text_font_size = "9pt"
         for i, index in enumerate(indexes):
+            if i > len(indexes)-3:
+                print(len(indexes)-1-i)
+                c = colors[len(indexes)-1-i]
+            else:
+                print(len(indexes)*2-2-i*2)
+                c = colors[len(indexes)*2-2-i*2]
             p.circle(
                 source=df3.loc[index, :],
                 x=param,
                 y=jitter('Labels', width=0.3, range=p.y_range), 
-                color = colors[i],
+                color = c,
                 alpha=0.3,
             )
         p.circle(
